@@ -1,19 +1,38 @@
+var serilog = require('serilog');
+var terminal = require('serilog/src/serilog-terminal-sink');
+var file = require('serilog/src/serilog-file-sink');
+
+function getUserId(){
+    return Math.random();
+}
 function shadowizard(options) {
-    let images = document.querySelectorAll('.shadowizard');
+    var log = serilog.configuration()
+    .enrich({
+        UserId: getUserId()
+        })
+    .filter(logEvent => logEvent.properties.Name === 'Greg')
+    .writeTo(terminal())
+    .writeTo(file('log.txt'))
+    .createLogger();
+    
+    log.information('Hello {Name}!', 'Greg');
 
-    if(options.shadow_type === 'hard')
-    options.shadow_type = '0px'
-    else
-    options.shadow_type = '15px'
-
-    images.forEach(image => {
-        image.style.boxShadow = '10px 10px ${options.shadow_tye} 1px rgba(0,0,0,0,12)';
-
-        if(options.padding){
-            image.style.padding = '1em';
+    log.information("You requested the Index page");
+    try {
+        for (let i = 0; i < 10; i++) {
+            if (i == 6)
+            {
+                throw "this is our demo exception";
+            }
+            else {
+                log.information("this value of i is {LoopCountValue} {UserId}", i);
+            }
         }
-
-    })
+    }
+    catch (ex)
+    {
+        log.error(ex, "We caught this expection in the Index Get call.");
+    }
 }
 
 module.exports.shadowizard = shadowizard;
